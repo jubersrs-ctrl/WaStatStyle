@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#F5F7F9">
+<LinearLayout android:orientation="vertical" android:padding="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="WaStat Style" android:textSize="30sp" android:textStyle="bold" android:textColor="#111111" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:text="Free activity tracker" android:textSize="14sp" android:textColor="#6B7280" android:layout_marginTop="3dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/addContact" android:text="＋ Add contact" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/summary" android:text="0 tracked contacts" android:textSize="17sp" android:textStyle="bold" android:padding="16dp" android:background="#FFFFFF" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/stats" android:text="Online  0     Offline  0     Last Seen  0" android:textSize="13sp" android:textColor="#4B5563" android:padding="14dp" android:background="#FFFFFF" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/empty" android:text="Add a contact to start recording activity." android:textSize="14sp" android:textColor="#6B7280" android:gravity="center" android:padding="24dp" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <LinearLayout android:id="@+id/contactList" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="22dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:text="Recent activity" android:textSize="20sp" android:textStyle="bold" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+        <Button android:id="@+id/clearHistory" android:text="Clear" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+    <TextView android:id="@+id/history" android:text="No activity recorded yet." android:textSize="14sp" android:textColor="#333333" android:background="#FFFFFF" android:padding="14dp" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:text="\nPrivacy note: this app records events entered by the user. It does not bypass WhatsApp privacy controls or extract hidden Online/Last Seen data." android:textSize="12sp" android:textColor="#6B7280" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
+</ScrollView>
