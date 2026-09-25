@@ -106,7 +106,7 @@ public class MainActivity extends Activity {
         StringBuilder c=new StringBuilder();
         for(String s:contacts){if(c.length()>0)c.append('|'); c.append(s.replace("|"," "));}
         StringBuilder e=new StringBuilder();
-        for(String s:events){if(e.length()>0)e.append('\\n'); e.append(s.replace("\n"," "));}
+        for(String s:events){if(e.length()>0)e.append('\n'); e.append(s.replace("\n"," "));}
         prefs.edit().putString("contacts",c.toString()).putString("events",e.toString()).apply();
     }
 }
