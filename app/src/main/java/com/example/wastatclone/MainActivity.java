@@ -165,7 +165,16 @@ public class MainActivity extends Activity {
 
         render();
     }
+String getDateLabel(int index) {
+    Calendar c = Calendar.getInstance();
 
+    c.add(Calendar.DAY_OF_YEAR, -(29 - index));
+
+    return new SimpleDateFormat(
+            "dd/MM",
+            Locale.getDefault()
+    ).format(c.getTime());
+}
     LinearLayout createChart() {
 
         LinearLayout chart = new LinearLayout(this);
