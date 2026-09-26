@@ -1,33 +1,344 @@
-name: Build APK
+package com.example.wastatclone;
 
-on:
-  push:
-    branches: [main]
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.widget.*;
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+public class MainActivity extends Activity {
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+    LinearLayout root;
+    LinearLayout contactList;
+    LinearLayout timelineList;
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
+    TextView contactCount;
+    TextView onlineCount;
+    TextView offlineCount;
+    TextView lastSeenCount;
 
-      - name: Build APK
-        run: gradle assembleDebug
+    ArrayList<String> contacts = new ArrayList<>();
+    ArrayList<Event> events = new ArrayList<>();
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+    android.content.SharedPreferences prefs;
+
+    SimpleDateFormat fullDate =
+            new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault());
+
+    SimpleDateFormat dayDate =
+            new SimpleDateFormat("dd MMM", Locale.getDefault());
+
+    static class Event {
+        String contact;
+        String type;
+        long time;
+
+        Event(String contact, String type, long time) {
+            this.contact = contact;
+            this.type = type;
+            this.time = time;
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        prefs = getSharedPreferences("wastat_data", MODE_PRIVATE);
+
+        loadData();
+        buildUI();
+        render();
+    }
+
+    void buildUI() {
+
+        ScrollView scroll = new ScrollView(this);
+
+        root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(18, 18, 18, 30);
+        root.setBackgroundColor(Color.rgb(245, 247, 250));
+
+        scroll.addView(root);
+
+        TextView title = text(
+                "WaStat Style",
+                28,
+                Color.BLACK
+        );
+        title.setTypeface(null, 1);
+
+        root.addView(title);
+
+        TextView subtitle = text(
+                "Activity Dashboard",
+                15,
+                Color.DKGRAY
+        );
+
+        root.addView(subtitle);
+
+        space(18);
+
+        LinearLayout stats1 = row();
+
+        contactCount = statCard(stats1, "Contacts");
+        onlineCount = statCard(stats1, "Online");
+        offlineCount = statCard(stats1, "Offline");
+
+        root.addView(stats1);
+
+        space(10);
+
+        LinearLayout stats2 = row();
+
+        lastSeenCount = statCard(stats2, "Last Seen");
+
+        TextView total = statCard(stats2, "30 Days");
+
+        root.addView(stats2);
+
+        space(20);
+
+        Button add = new Button(this);
+        add.setText("＋  Add Contact");
+        add.setOnClickListener(v -> addContact());
+
+        root.addView(add);
+
+        space(16);
+
+        TextView contactTitle = text(
+                "Your Contacts",
+                21,
+                Color.BLACK
+        );
+        contactTitle.setTypeface(null, 1);
+
+        root.addView(contactTitle);
+
+        contactList = new LinearLayout(this);
+        contactList.setOrientation(LinearLayout.VERTICAL);
+
+        root.addView(contactList);
+
+        space(22);
+
+        TextView statisticsTitle = text(
+                "30 Days Statistics",
+                21,
+                Color.BLACK
+        );
+        statisticsTitle.setTypeface(null, 1);
+
+        root.addView(statisticsTitle);
+
+        space(8);
+
+        LinearLayout chart = createChart();
+
+        root.addView(chart);
+
+        space(22);
+
+        TextView timelineTitle = text(
+                "Activity Timeline",
+                21,
+                Color.BLACK
+        );
+        timelineTitle.setTypeface(null, 1);
+
+        root.addView(timelineTitle);
+
+        timelineList = new LinearLayout(this);
+        timelineList.setOrientation(LinearLayout.VERTICAL);
+
+        root.addView(timelineList);
+
+        space(12);
+
+        Button clear = new Button(this);
+        clear.setText("🗑  Clear History");
+        clear.setOnClickListener(v -> clearHistory());
+
+        root.addView(clear);
+
+        setContentView(scroll);
+    }
+
+    LinearLayout createChart() {
+
+        LinearLayout chart = new LinearLayout(this);
+
+        chart.setOrientation(LinearLayout.VERTICAL);
+        chart.setPadding(14, 14, 14, 14);
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(22);
+
+        chart.setBackground(bg);
+
+        int[] daily = getLast30Days();
+
+        for (int i = 0; i < 30; i++) {
+
+            LinearLayout line = new LinearLayout(this);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+
+            TextView date = text(
+                    getDateLabel(i),
+                    11,
+                    Color.DKGRAY
+            );
+
+            date.setGravity(Gravity.CENTER);
+
+            line.addView(
+                    date,
+                    new LinearLayout.LayoutParams(55, 35)
+            );
+
+            LinearLayout barArea = new LinearLayout(this);
+
+            barArea.setGravity(Gravity.CENTER_VERTICAL);
+
+            int value = daily[i];
+
+            TextView bar = new TextView(this);
+
+            GradientDrawable barBg = new GradientDrawable();
+            barBg.setColor(Color.rgb(76, 175, 80));
+            barBg.setCornerRadius(10);
+
+            bar.setBackground(barBg);
+
+            int width = Math.min(
+                    240,
+                    Math.max(5, value * 35)
+            );
+
+            barArea.addView(
+                    bar,
+                    new LinearLayout.LayoutParams(
+                            width,
+                            18
+                    )
+            );
+
+            TextView number = text(
+                    " " + value,
+                    12,
+                    Color.DKGRAY
+            );
+
+            barArea.addView(number);
+
+            line.addView(
+                    barArea,
+                    new LinearLayout.LayoutParams(
+                            0,
+                            35,
+                            1
+                    )
+            );
+
+            chart.addView(line);
+        }
+
+        return chart;
+    }
+
+    String getDateLabel(int index) {
+
+        Calendar c = Calendar.getInstance();
+
+        c.add(Calendar.DAY_OF_YEAR, -(29 - index));
+
+        return dayDate.format(c.getTime());
+    }
+
+    int[] getLast30Days() {
+
+        int[] result = new int[30];
+
+        Calendar today = Calendar.getInstance();
+
+        for (Event e : events) {
+
+            Calendar eventDay = Calendar.getInstance();
+            eventDay.setTimeInMillis(e.time);
+
+            long diff =
+                    getDayNumber(today)
+                    - getDayNumber(eventDay);
+
+            if (diff >= 0 && diff < 30) {
+
+                int index = 29 - (int) diff;
+
+                result[index]++;
+            }
+        }
+
+        return result;
+    }
+
+    long getDayNumber(Calendar c) {
+
+        Calendar copy = (Calendar) c.clone();
+
+        copy.set(
+                Calendar.HOUR_OF_DAY,
+                0
+        );
+        copy.set(
+                Calendar.MINUTE,
+                0
+        );
+        copy.set(
+                Calendar.SECOND,
+                0
+        );
+        copy.set(
+                Calendar.MILLISECOND,
+                0
+        );
+
+        return copy.getTimeInMillis()
+                / (24L * 60L * 60L * 1000L);
+    }
+
+    void addContact() {
+
+        final EditText input = new EditText(this);
+
+        input.setHint("Name or WhatsApp number");
+        input.setSingleLine(true);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Add Contact")
+                .setView(input)
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
+                .setPositiveButton(
+                        "Add",
+                        (dialog, which) -> {
+
+                            String name =
+                                    input.getText()
+                                            .toString()
+                                            .trim();
+
+                            if (name.isEmpty())
+                                return;
+
+                            if (contacts.contains(name))
